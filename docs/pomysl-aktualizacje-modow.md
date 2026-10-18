@@ -4,7 +4,9 @@ Status: **pomysł, do przemyślenia.** Niezależny od [aktualizacji aplikacji](p
 
 ## Problem
 
-Autorzy kampanii wrzucają nowe wersje (linki do pobrania) na Discord CCM (`discord.gg/UCDyZyr6gg`, kanały z kampaniami).
+Autorzy kampanii wrzucają nowe wersje (linki do pobrania) na Discord CCM – serwer **GiantGrantGames Custom Campaign Manager**
+(ok. 103 tys. członków): [discord.gg/5EDwDpcu](https://discord.gg/5EDwDpcu), w oryginalnym README także `discord.gg/UCDyZyr6gg`.
+Uwaga: zaproszenia mogą wygasać – do aplikacji lepiej wpisać stałe zaproszenie od administratorów albo link do kanału.
 Użytkownik nie wie, że wyszła nowa wersja, dopóki sam nie sprawdzi. Przykład: „Artanis has Gone Zeratul(like)!”
 miał ręcznie wgraną wersję 1.0.8, a na Discordzie była już 1.0.10.
 
