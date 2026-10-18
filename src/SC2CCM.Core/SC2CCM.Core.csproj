@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>SC2CCM.Core</RootNamespace>
+    <!-- Celowo bez zależności NuGet: logika ma się kompilować wszędzie. -->
+  </PropertyGroup>
+
+</Project>

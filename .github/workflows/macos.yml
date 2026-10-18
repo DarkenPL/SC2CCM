@@ -1,0 +1,27 @@
+name: macOS build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Core smoke tests
+        run: dotnet run --project tests/SC2CCM.Core.Tests
+
+      - name: Build .app (arm64 + x64)
+        run: bash build-mac.sh all
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SC2CCM-macOS
+          path: dist/*.zip

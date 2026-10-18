@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>SC2CCM</AssemblyName>
+    <RootNamespace>SC2CCM.Mac</RootNamespace>
+    <Version>1.0.0</Version>
+    <InformationalVersion>1.0.0 (macOS port of SC2CCM 1.03)</InformationalVersion>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <!-- Mniejszy rozmiar paczki, bez ryzyka dla Avalonii (refleksja jest potrzebna, więc bez trimmingu). -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\AppIcon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.4" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.4" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SC2CCM.Core\SC2CCM.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,6 +1,8 @@
-﻿################################################################################
-# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
-################################################################################
-
-/.vs
-/CCM/.vs/Starcraft Mod Manager/v16
+bin/
+obj/
+build/
+dist/
+*.user
+.vs/
+.idea/
+.DS_Store

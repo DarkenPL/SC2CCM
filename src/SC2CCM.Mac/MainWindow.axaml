@@ -1,0 +1,61 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="SC2CCM.Mac.MainWindow"
+        Title="StarCraft II Custom Campaign Manager"
+        Icon="avares://SC2CCM/Assets/AppIcon.png"
+        Width="940" Height="700" MinWidth="740" MinHeight="580"
+        WindowStartupLocation="CenterScreen"
+        DragDrop.AllowDrop="True">
+
+  <Grid>
+    <Grid x:Name="Root" RowDefinitions="Auto,*,Auto" Margin="16">
+
+      <!-- Nagłówek -->
+      <Grid ColumnDefinitions="Auto,*,Auto" Margin="6,0,6,10">
+        <Image Source="avares://SC2CCM/Assets/AppIcon.png" Width="40" Height="40" Margin="0,0,12,0"
+               VerticalAlignment="Center" />
+        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+          <TextBlock Text="Custom Campaign Manager" FontSize="20" FontWeight="SemiBold" />
+          <TextBlock x:Name="PathText" Text="Looking for StarCraft II…" Opacity="0.65" FontSize="12"
+                     TextTrimming="CharacterEllipsis" />
+        </StackPanel>
+        <TextBlock Grid.Column="2" Text="Drop .zip files or folders onto this window to import"
+                   Opacity="0.65" FontSize="12" VerticalAlignment="Bottom" />
+      </Grid>
+
+      <!-- 4 kampanie (wypełniane w kodzie) -->
+      <Grid x:Name="CampaignGrid" Grid.Row="1" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto"
+            VerticalAlignment="Top" />
+
+      <!-- Log + przyciski -->
+      <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="6,10,6,0" Height="180">
+        <TextBox x:Name="LogBox" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap"
+                 FontFamily="Menlo, Monaco, monospace" FontSize="11"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto" />
+        <StackPanel Grid.Column="1" Width="190" Spacing="6" Margin="12,0,0,0">
+          <Button x:Name="ImportZipButton" Content="Import .zip…" HorizontalAlignment="Stretch" Classes="accent" />
+          <Button x:Name="ImportFolderButton" Content="Import Folder…" HorizontalAlignment="Stretch" />
+          <Button x:Name="RefreshButton" Content="Refresh" HorizontalAlignment="Stretch" />
+          <Button x:Name="OpenFolderButton" Content="Show Campaigns in Finder" HorizontalAlignment="Stretch" />
+          <Button x:Name="ChangeSc2Button" Content="Change SC2 Folder…" HorizontalAlignment="Stretch" />
+          <Button x:Name="InfoButton" Content="How to Install / About" HorizontalAlignment="Stretch" />
+        </StackPanel>
+      </Grid>
+    </Grid>
+
+    <!-- Nakładka przy przeciąganiu plików -->
+    <Border x:Name="DropOverlay" IsVisible="False" IsHitTestVisible="False"
+            Background="#B0101830" BorderBrush="#7FA0FF" BorderThickness="3" CornerRadius="12" Margin="8">
+      <TextBlock Text="Drop to import" FontSize="28" FontWeight="SemiBold" Foreground="White"
+                 HorizontalAlignment="Center" VerticalAlignment="Center" />
+    </Border>
+
+    <!-- Nakładka podczas pracy -->
+    <Border x:Name="BusyOverlay" IsVisible="False" Background="#60000000">
+      <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+        <ProgressBar IsIndeterminate="True" Width="220" />
+        <TextBlock x:Name="BusyText" Text="Working…" Foreground="White" HorizontalAlignment="Center" />
+      </StackPanel>
+    </Border>
+  </Grid>
+</Window>
