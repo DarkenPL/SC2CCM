@@ -1,0 +1,60 @@
+# Wydanie aplikacji: wypchnięcie tagu v<wersja> (np. v1.0.0) buduje SC2CCM.app (Apple Silicon)
+# i tworzy wydanie na GitHubie z plikiem .zip. Tag musi zgadzać się z <Version> w SC2CCM.Mac.csproj.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Check tag matches project version
+        run: |
+          version="$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' src/SC2CCM.Mac/SC2CCM.Mac.csproj | head -1)"
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match <Version>$version</Version> in SC2CCM.Mac.csproj"
+            exit 1
+          fi
+
+      - name: Core smoke tests
+        run: dotnet run --project tests/SC2CCM.Core.Tests
+
+      - name: Build .app (Apple Silicon)
+        run: bash build-mac.sh
+
+      - name: Verify signature
+        run: codesign --verify --deep --strict dist/SC2CCM.app
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/*.zip --latest \
+            --title "SC2CCM for macOS ${GITHUB_REF_NAME#v}" \
+            --notes-file - <<'EOF'
+          StarCraft II Custom Campaign Manager for macOS — **Apple Silicon (M1 and newer)**, macOS 12+.
+
+          ### Install
+          1. Download the `.zip` below and unzip it.
+          2. Move **SC2CCM.app** to **Applications**.
+          3. The app is not notarized by Apple, so the first launch is blocked: right-click **SC2CCM.app → Open → Open**
+             (or System Settings → Privacy & Security → **Open Anyway**).
+             Terminal alternative: `xattr -dr com.apple.quarantine /Applications/SC2CCM.app`
+
+          ### Use
+          Drop a campaign `.zip` (or folder) onto the window, pick it from the list and click **Set Active**.
+          **Restore Default** brings back the Blizzard campaign. StarCraft II is detected in `/Applications/StarCraft II`.
+
+          Based on SC2CCM by 7thAce and GiantGrantGames (MIT License).
+          EOF
