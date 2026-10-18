@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
-# Buduje SC2CCM.app dla macOS.
-#
-#   ./build-mac.sh            – architektura tego Maca (arm64 = Apple Silicon, x64 = Intel)
-#   ./build-mac.sh arm64      – tylko Apple Silicon
-#   ./build-mac.sh x64        – tylko Intel
-#   ./build-mac.sh all        – obie, osobne .app i .zip
+# Buduje SC2CCM.app dla macOS na Apple Silicon (arm64):  ./build-mac.sh
 #
 # Wymaga .NET 8 SDK:  brew install --cask dotnet-sdk   (albo https://dotnet.microsoft.com/download)
 set -euo pipefail
@@ -19,13 +14,7 @@ if ! command -v dotnet >/dev/null 2>&1; then
   exit 1
 fi
 
-case "${1:-}" in
-  "")    case "$(uname -m)" in arm64) ARCHES=(arm64) ;; *) ARCHES=(x64) ;; esac ;;
-  arm64) ARCHES=(arm64) ;;
-  x64)   ARCHES=(x64) ;;
-  all)   ARCHES=(arm64 x64) ;;
-  *) echo "Użycie: $0 [arm64|x64|all]" >&2; exit 1 ;;
-esac
+ARCHES=(arm64)
 
 rm -rf build dist
 mkdir -p dist

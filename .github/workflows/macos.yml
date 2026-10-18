@@ -18,8 +18,8 @@ jobs:
       - name: Core smoke tests
         run: dotnet run --project tests/SC2CCM.Core.Tests
 
-      - name: Build .app (arm64 + x64)
-        run: bash build-mac.sh all
+      - name: Build .app (Apple Silicon)
+        run: bash build-mac.sh
 
       - uses: actions/upload-artifact@v4
         with:

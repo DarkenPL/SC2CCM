@@ -9,14 +9,13 @@ Built with C# / .NET 8 and [Avalonia](https://avaloniaui.net/) instead of WinFor
 
 ## Download / build
 
-**Without building:** the GitHub Actions workflow (`.github/workflows/macos.yml`) builds the app on every push.
+**Without building:** the GitHub Actions workflow (`.github/workflows/macos.yml`) builds the app (Apple Silicon) on every push.
 Open *Actions → macOS build → latest run → Artifacts → SC2CCM-macOS*.
 
 **Build yourself** (needs the .NET 8 SDK: `brew install --cask dotnet-sdk`):
 
 ```bash
-./build-mac.sh          # this Mac's architecture → dist/SC2CCM.app
-./build-mac.sh all      # Apple Silicon + Intel
+./build-mac.sh          # → dist/SC2CCM.app (Apple Silicon)
 ```
 
 Move `SC2CCM.app` to `/Applications`. The app is not notarized, so on first launch right-click it → **Open** → **Open**
