@@ -1,10 +1,13 @@
-# Wydanie aplikacji: wypchnięcie tagu v<wersja> (np. v1.0.0) buduje SC2CCM.app (Apple Silicon)
-# i tworzy wydanie na GitHubie z plikiem .zip. Tag musi zgadzać się z <Version> w SC2CCM.Mac.csproj.
+# Wydanie aplikacji (jak w KarKa): każda zmiana w main buduje SC2CCM.app (Apple Silicon). Jeśli wydania
+# v<Version z SC2CCM.Mac.csproj> jeszcze nie ma, tworzy je (z tagiem) i dołącza .zip; jeśli jest – tylko ostrzeżenie.
+# Nowe wydanie = podniesienie <Version> w src/SC2CCM.Mac/SC2CCM.Mac.csproj.
 name: Release
 
 on:
   push:
-    tags: ["v*"]
+    branches: [main]
+    paths-ignore: ["docs/**", "**.md"]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -19,12 +22,16 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      - name: Check tag matches project version
+      - name: Version
+        id: v
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           version="$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' src/SC2CCM.Mac/SC2CCM.Mac.csproj | head -1)"
-          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match <Version>$version</Version> in SC2CCM.Mac.csproj"
-            exit 1
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+          if gh release view "v$version" >/dev/null 2>&1; then
+            echo "::warning::Release v$version already exists - bump <Version> in SC2CCM.Mac.csproj to publish a new one."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Core smoke tests
@@ -37,11 +44,12 @@ jobs:
         run: codesign --verify --deep --strict dist/SC2CCM.app
 
       - name: Create release
+        if: steps.v.outputs.exists != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" dist/*.zip --latest \
-            --title "SC2CCM for macOS ${GITHUB_REF_NAME#v}" \
+          gh release create "${{ steps.v.outputs.tag }}" dist/*.zip --latest --target "$GITHUB_SHA" \
+            --title "SC2CCM for macOS ${{ steps.v.outputs.tag }}" \
             --notes-file - <<'EOF'
           StarCraft II Custom Campaign Manager for macOS — **Apple Silicon (M1 and newer)**, macOS 12+.
 

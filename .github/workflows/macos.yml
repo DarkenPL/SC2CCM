@@ -2,6 +2,7 @@ name: macOS build
 
 on:
   push:
+    branches-ignore: [main]   # main buduje release.yml
     paths-ignore: ["docs/**", "**.md"]
   pull_request:
     paths-ignore: ["docs/**", "**.md"]
