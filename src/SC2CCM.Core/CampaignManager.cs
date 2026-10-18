@@ -74,21 +74,7 @@ public sealed class CampaignManager
                 Write($"ERROR: Could not unzip {name}: {ex.Message}");
                 continue;
             }
-
-            // Prolog LotV ma swój osobny folder w grze.
-            // (W oryginale Directory.Move zawodził, bo folder docelowy już istniał – tu scalamy.)
-            foreach (var dir in Directory.EnumerateDirectories(target, "lotvprologue", FileOps.Recursive).ToList())
-            {
-                try
-                {
-                    FileOps.MergeMove(dir, VoidPrologueDir);
-                    Write("Moved LotV prologue files to the proper place.");
-                }
-                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-                {
-                    Write($"ERROR: Could not move LotV prologue files: {ex.Message}");
-                }
-            }
+            // Prolog LotV zostaje w folderze moda – trafia do Maps/Campaign/voidprologue dopiero przy „Set Active”.
 
             try { File.Delete(zip); }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
@@ -220,9 +206,20 @@ public sealed class CampaignManager
     private bool ClearCampaign(Campaign c)
     {
         var ok = ClearDir(TargetDir(c));
-        // W oryginale „Set” dla HotS nie czyścił misji ewolucji (TODO autorów) – tu czyścimy je zawsze.
         if (c == Campaign.HotS) ok &= ClearDir(EvolutionDir);
+        if (c == Campaign.LotV) ok &= ClearDir(VoidPrologueDir);
         return ok;
+    }
+
+    private static readonly string[] PrologueFolderNames = { "voidprologue", "lotvprologue" };
+
+    /// <summary>Foldery prologu LotV w modzie (paczki używają nazwy „voidprologue” albo „lotvprologue”).</summary>
+    private static List<string> FindPrologueDirs(Mod mod)
+    {
+        var root = string.IsNullOrEmpty(mod.RootFolder) ? mod.Path : mod.RootFolder;
+        return Directory.EnumerateDirectories(root, "*", FileOps.Recursive)
+            .Where(d => PrologueFolderNames.Contains(Path.GetFileName(d), StringComparer.OrdinalIgnoreCase))
+            .ToList();
     }
 
     /// <summary>„Set to Active Campaign”.</summary>
@@ -236,7 +233,21 @@ public sealed class CampaignManager
         }
         try
         {
-            FileOps.CopyDirectory(mod.Path, TargetDir(mod.Campaign));
+            if (mod.Campaign == Campaign.LotV)
+            {
+                // Prolog idzie do Maps/Campaign/voidprologue, reszta do Maps/Campaign/void.
+                var prologues = FindPrologueDirs(mod);
+                FileOps.CopyDirectory(mod.Path, TargetDir(mod.Campaign),
+                    excludeDir: d => prologues.Any(p => FileOps.SamePath(p, d)));
+                foreach (var p in prologues)
+                    FileOps.CopyDirectory(p, VoidPrologueDir);
+                if (prologues.Count > 0)
+                    Write("Installed LotV prologue missions.");
+            }
+            else
+            {
+                FileOps.CopyDirectory(mod.Path, TargetDir(mod.Campaign));
+            }
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {

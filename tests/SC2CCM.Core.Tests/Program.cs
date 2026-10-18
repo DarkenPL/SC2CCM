@@ -77,7 +77,7 @@ try
     Check(!File.Exists(Path.Combine(mgr.CustomCampaignsDir, "WingsRemix", "WingsRemix", ".DS_Store")), ".DS_Store pominięty");
     Check(File.Exists(Path.Combine(mgr.ModsDir, "CoolLotV.SC2Mod")), "plik .SC2Mod przeniesiony do Mods");
     Check(Directory.Exists(Path.Combine(mgr.ModsDir, "Assets.SC2Mod")), "folder .SC2Mod przeniesiony do Mods");
-    Check(File.Exists(Path.Combine(mgr.VoidPrologueDir, "Prologue01.SC2Map")), "prolog LotV scalony z voidprologue");
+    Check(!File.Exists(Path.Combine(mgr.VoidPrologueDir, "Prologue01.SC2Map")), "prolog nie jest instalowany przy samym imporcie");
 
     var mods = mgr.LoadMods();
     Check(mods[Campaign.LotV].Count == 1 && mods[Campaign.LotV][0].Title == "Cool LotV", "LotV: metadata z BOM/CRLF");
@@ -88,6 +88,8 @@ try
     Check(mgr.SetActive(mods[Campaign.HotS][0]), "Set HotS");
     Check(File.Exists(Path.Combine(mgr.EvolutionDir, "Evo01.SC2Map")), "misje ewolucji skopiowane");
     Check(mgr.SetActive(mods[Campaign.LotV][0]), "Set LotV");
+    Check(File.Exists(Path.Combine(mgr.VoidPrologueDir, "Prologue01.SC2Map")), "prolog (lotvprologue) trafił do voidprologue");
+    Check(!Directory.Exists(Path.Combine(mgr.TargetDir(Campaign.LotV), "lotvprologue")), "prolog nie wylądował w void/");
     Check(mgr.SetActive(mods[Campaign.WoL][0]), "Set WoL");
     Check(mgr.GetActiveMod(Campaign.WoL)?.Title == "Wings Remix", "aktywny WoL odczytany");
     Check(mgr.GetActiveMod(Campaign.HotS)?.Title == "Swarm Plus", "ustawienie WoL nie skasowało HotS");
@@ -104,6 +106,36 @@ try
     // Restore WoL nie może skasować folderów pozostałych kampanii.
     Check(mgr.Restore(Campaign.WoL), "Restore WoL");
     Check(mgr.GetActiveMod(Campaign.LotV)?.Title == "Cool LotV", "Restore WoL nie ruszył LotV");
+
+    // Paczka o układzie jak „Artanis has Gone Zeratul(like)”: pliki w korzeniu zipa,
+    // podfolder voidprologue/, zależności .SC2Mod jako plik i jako folder.
+    var rogueZip = Path.Combine(downloads, "LOTVRogue-2.zip");
+    using (var z = ZipFile.Open(rogueZip, ZipArchiveMode.Create))
+    {
+        void Add(string name, string content)
+        {
+            using var s = new StreamWriter(z.CreateEntry(name).Open());
+            s.Write(content);
+        }
+        Add("metadata.txt", "title=Artanis has Gone Zeratul(like)!\ndesc=x\nauthor=CaptainKian\ncampaign=LotV\nversion=1.0.10\n");
+        Add("paiur01.SC2Map", "rogue-aiur");
+        Add("LOTVRoguelike.SC2Mod", "dep");
+        Add("kit_legacy_lib.SC2Mod/Triggers", "lib");
+        Add("voidprologue/voidprologue01.SC2Map", "rogue-prologue");
+    }
+    // „Ręcznie wgrany” stary plik prologu, który ma zostać zastąpiony.
+    File.WriteAllText(Path.Combine(mgr.VoidPrologueDir, "voidprologue01.SC2Map"), "old-manual");
+    mgr.Import(new[] { rogueZip });
+    var rogue = mgr.LoadMods()[Campaign.LotV].Single(m => m.Title.StartsWith("Artanis"));
+    Check(rogue.Version == "1.0.10", "Artanis: wersja z metadata");
+    Check(Directory.Exists(Path.Combine(mgr.ModsDir, "kit_legacy_lib.SC2Mod")), "Artanis: kit_legacy_lib w Mods");
+    Check(mgr.SetActive(rogue), "Set Artanis");
+    Check(File.ReadAllText(Path.Combine(mgr.VoidPrologueDir, "voidprologue01.SC2Map")) == "rogue-prologue", "Artanis: prolog (voidprologue) zastąpił stary");
+    Check(!Directory.Exists(Path.Combine(mgr.TargetDir(Campaign.LotV), "voidprologue")), "Artanis: brak void/voidprologue");
+    Check(File.ReadAllText(Path.Combine(mgr.TargetDir(Campaign.LotV), "paiur01.SC2Map")) == "rogue-aiur", "Artanis: misje w void/");
+    Check(!File.Exists(Path.Combine(mgr.TargetDir(Campaign.LotV), "VoidMission01.SC2Map")), "Artanis: pliki poprzedniego moda usunięte");
+    Check(mgr.Restore(Campaign.LotV), "Restore LotV");
+    Check(!Directory.EnumerateFileSystemEntries(mgr.VoidPrologueDir).Any(), "Restore LotV czyści też prolog");
 
     // Usuwanie modu.
     var wol = mods[Campaign.WoL][0];

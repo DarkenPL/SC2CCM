@@ -25,28 +25,37 @@ internal static class FileOps
         || name.StartsWith("._", StringComparison.Ordinal);
 
     /// <summary>Rekurencyjna kopia z nadpisywaniem (odpowiednik copyFilesAndFolders).</summary>
-    public static void CopyDirectory(string source, string target)
+    /// <param name="excludeDir">Opcjonalnie: foldery (wraz z zawartością), których nie kopiować.</param>
+    public static void CopyDirectory(string source, string target, Func<string, bool>? excludeDir = null)
     {
         Directory.CreateDirectory(target);
         foreach (var dir in Directory.EnumerateDirectories(source, "*", Recursive))
         {
-            if (PathHasJunk(source, dir)) continue;
+            if (PathHasJunk(source, dir) || IsExcluded(source, dir, excludeDir)) continue;
             Directory.CreateDirectory(System.IO.Path.Combine(target, System.IO.Path.GetRelativePath(source, dir)));
         }
         foreach (var file in Directory.EnumerateFiles(source, "*", Recursive))
         {
-            if (PathHasJunk(source, file)) continue;
+            if (PathHasJunk(source, file)
+                || IsExcluded(source, System.IO.Path.GetDirectoryName(file)!, excludeDir)) continue;
             var dest = System.IO.Path.Combine(target, System.IO.Path.GetRelativePath(source, file));
             Directory.CreateDirectory(System.IO.Path.GetDirectoryName(dest)!);
             File.Copy(file, dest, overwrite: true);
         }
     }
 
-    /// <summary>Scala zawartość folderu do innego i usuwa źródło.</summary>
-    public static void MergeMove(string source, string target)
+    /// <summary>Czy folder (lub któryś z jego folderów nadrzędnych aż do root) jest wykluczony.</summary>
+    private static bool IsExcluded(string root, string dir, Func<string, bool>? excludeDir)
     {
-        CopyDirectory(source, target);
-        Directory.Delete(source, recursive: true);
+        if (excludeDir == null) return false;
+        var current = Normalize(dir);
+        var stop = Normalize(root);
+        while (current.Length > stop.Length)
+        {
+            if (excludeDir(current)) return true;
+            current = System.IO.Path.GetDirectoryName(current) ?? stop;
+        }
+        return false;
     }
 
     private static bool PathHasJunk(string root, string path) =>
