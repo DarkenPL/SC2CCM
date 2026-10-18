@@ -42,6 +42,11 @@ Run the logic tests: `dotnet run --project tests/SC2CCM.Core.Tests`
   build-mac.sh       publish + assemble .app + ad-hoc sign + zip
 ```
 
+## Plans
+
+- [DMG installer and self-updating app](docs/plan-dmg-i-aktualizacje.md) (planned, Polish)
+- [Tracking updates of installed mods](docs/pomysl-aktualizacje-modow.md) (idea, Polish)
+
 ## License
 
 This is an unofficial port and not the official CCM distribution.
